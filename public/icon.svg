@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="115" fill="#F43F5E"/>
+  <!-- Almohadilla central -->
+  <ellipse cx="256" cy="322" rx="92" ry="76" fill="white"/>
+  <!-- 4 dedos -->
+  <ellipse cx="153" cy="224" rx="46" ry="39" fill="white" transform="rotate(-15,153,224)"/>
+  <ellipse cx="207" cy="166" rx="46" ry="39" fill="white" transform="rotate(-5,207,166)"/>
+  <ellipse cx="305" cy="166" rx="46" ry="39" fill="white" transform="rotate(5,305,166)"/>
+  <ellipse cx="359" cy="224" rx="46" ry="39" fill="white" transform="rotate(15,359,224)"/>
+</svg>

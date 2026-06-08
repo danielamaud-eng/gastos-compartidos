@@ -1,0 +1,19 @@
+{
+  "name": "Gastos Compartidos",
+  "short_name": "Gastos",
+  "description": "Nuestro registro de gastos del hogar",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F5",
+  "theme_color": "#F43F5E",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
