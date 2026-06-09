@@ -17,7 +17,7 @@ export type Gasto = {
 }
 
 const FOTOS_STRIP = ['/images/foto1.jpg', '/images/foto2.jpg', '/images/foto3.jpg']
-const STRIP_FALLBACK = ['#fce7f3', '#fdf4ff', '#fff7ed']
+const STRIP_FALLBACK = ['#fbcfe8', '#e9d5ff', '#fed7aa']
 
 function ProfileCircle() {
   return (
