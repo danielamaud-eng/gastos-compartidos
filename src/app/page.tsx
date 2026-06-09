@@ -73,7 +73,7 @@ export default function Home() {
     return true
   })
 
-  const categorias = [...new Set(gastos.map(g => g.categoria))]
+  const categorias = Array.from(new Set(gastos.map(g => g.categoria)))
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#FFF8F5' }}>
