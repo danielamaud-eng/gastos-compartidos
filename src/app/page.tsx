@@ -16,9 +16,6 @@ export type Gasto = {
   tipo: string
 }
 
-const FOTOS_STRIP = ['/images/foto1.jpg', '/images/foto2.jpg', '/images/foto3.jpg']
-const STRIP_FALLBACK = ['#fbcfe8', '#e9d5ff', '#fed7aa']
-
 function ProfileCircle() {
   return (
     <div
@@ -66,7 +63,7 @@ export default function Home() {
   const categorias = Array.from(new Set(gastos.map(g => g.categoria)))
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#FFF8F5' }}>
+    <main className="min-h-screen" style={{ backgroundImage: "url('/dachshund-bg.svg')", backgroundSize: '320px 220px', backgroundRepeat: 'repeat' }}>
 
       {/* ── Header personal ────────────────────────── */}
       <header className="relative overflow-hidden border-b border-rose-100">
@@ -102,24 +99,6 @@ export default function Home() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-
-        {/* ── Tira de fotos ───────────────────────────
-            Guarda foto1.jpg, foto2.jpg, foto3.jpg en public/images/
-            Si no hay foto, muestra un bloque de color suave.       */}
-        <div className="flex gap-2 mb-6">
-          {FOTOS_STRIP.map((src, i) => (
-            <div
-              key={i}
-              className="flex-1 h-32 rounded-2xl shadow-sm"
-              style={{
-                background: STRIP_FALLBACK[i],
-                backgroundImage: `url(${src})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
-          ))}
-        </div>
 
         {/* ── Tarjetas de balance ─────────────────── */}
         <Balance gastos={gastos} />
