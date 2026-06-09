@@ -20,22 +20,12 @@ const FOTOS_STRIP = ['/images/foto1.jpg', '/images/foto2.jpg', '/images/foto3.jp
 const STRIP_FALLBACK = ['#fce7f3', '#fdf4ff', '#fff7ed']
 
 function ProfileCircle() {
-  const [hasError, setHasError] = useState(false)
   return (
     <div
       className="w-14 h-14 rounded-full overflow-hidden border-[3px] border-white shadow-md flex-shrink-0 flex items-center justify-center text-2xl select-none"
-      style={{ background: '#fce7f3' }}
+      style={{ background: `#fce7f3 url('/images/perfil.jpg') center/cover no-repeat` }}
     >
-      {hasError ? (
-        <span>🐾</span>
-      ) : (
-        <img
-          src="/images/perfil.jpg"
-          alt=""
-          className="w-full h-full object-cover"
-          onError={() => setHasError(true)}
-        />
-      )}
+      <span style={{ mixBlendMode: 'multiply', opacity: 0.4 }}>🐾</span>
     </div>
   )
 }
@@ -120,16 +110,14 @@ export default function Home() {
           {FOTOS_STRIP.map((src, i) => (
             <div
               key={i}
-              className="flex-1 h-32 rounded-2xl overflow-hidden shadow-sm"
-              style={{ background: STRIP_FALLBACK[i] }}
-            >
-              <img
-                src={src}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.style.opacity = '0' }}
-              />
-            </div>
+              className="flex-1 h-32 rounded-2xl shadow-sm"
+              style={{
+                background: STRIP_FALLBACK[i],
+                backgroundImage: `url(${src})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
           ))}
         </div>
 
