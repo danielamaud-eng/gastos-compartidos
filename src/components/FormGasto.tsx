@@ -7,6 +7,33 @@ const CATEGORIAS = [
   'Salud', 'Entretenimiento', 'Limpieza', 'Mascotas', 'Muebles', 'Otros',
 ]
 
+// Compress image to max 900px and ~200KB using Canvas
+function comprimirImagen(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const img = new Image()
+      img.onload = () => {
+        const MAX = 900
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round((height * MAX) / width); width = MAX }
+          else { width = Math.round((width * MAX) / height); height = MAX }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', 0.75))
+      }
+      img.onerror = reject
+      img.src = e.target!.result as string
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function FormGasto({ onCreado }: { onCreado: () => void }) {
   const [form, setForm] = useState({
     monto: '',
@@ -17,40 +44,50 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
   })
   const [archivo, setArchivo] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
-    let comprobante = ''
-    if (archivo) {
-      const fd = new FormData()
-      fd.append('file', archivo)
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
-      const data = await res.json()
-      comprobante = data.url
+    try {
+      let comprobante = ''
+      if (archivo) {
+        if (archivo.size > 10 * 1024 * 1024) {
+          setError('El archivo es demasiado grande (máx 10MB)')
+          setLoading(false)
+          return
+        }
+        comprobante = await comprimirImagen(archivo)
+      }
+
+      const res = await fetch('/api/gastos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, monto: parseFloat(form.monto), comprobante }),
+      })
+
+      if (!res.ok) throw new Error('Error al guardar')
+
+      setForm({
+        monto: '',
+        categoria: 'Alimentación',
+        fecha: new Date().toISOString().split('T')[0],
+        nota: '',
+        tipo: 'a_medias',
+      })
+      setArchivo(null)
+      onCreado()
+    } catch {
+      setError('No se pudo guardar el gasto. Intenta nuevamente.')
+    } finally {
+      setLoading(false)
     }
-
-    await fetch('/api/gastos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, monto: parseFloat(form.monto), comprobante }),
-    })
-
-    setForm({
-      monto: '',
-      categoria: 'Alimentación',
-      fecha: new Date().toISOString().split('T')[0],
-      nota: '',
-      tipo: 'a_medias',
-    })
-    setArchivo(null)
-    setLoading(false)
-    onCreado()
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-100">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-rose-100">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Nuevo Gasto</h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -62,7 +99,7 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
             step="any"
             value={form.monto}
             onChange={e => setForm({ ...form, monto: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
             placeholder="0"
           />
         </div>
@@ -71,7 +108,7 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
           <select
             value={form.categoria}
             onChange={e => setForm({ ...form, categoria: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-400"
           >
             {CATEGORIAS.map(c => <option key={c}>{c}</option>)}
           </select>
@@ -82,7 +119,7 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
             type="date"
             value={form.fecha}
             onChange={e => setForm({ ...form, fecha: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
           />
         </div>
         <div>
@@ -90,7 +127,7 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
           <select
             value={form.tipo}
             onChange={e => setForm({ ...form, tipo: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-400"
           >
             <option value="a_medias">A medias</option>
             <option value="solo_mia">Solo mía</option>
@@ -102,7 +139,7 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
             type="text"
             value={form.nota}
             onChange={e => setForm({ ...form, nota: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
             placeholder="Descripción del gasto..."
           />
         </div>
@@ -114,8 +151,19 @@ export default function FormGasto({ onCreado }: { onCreado: () => void }) {
             onChange={e => setArchivo(e.target.files?.[0] || null)}
             className="w-full border rounded-lg px-3 py-2 text-sm"
           />
-          {archivo && <p className="text-xs text-gray-500 mt-1">{archivo.name}</p>}
+          {archivo && (
+            <p className="text-xs text-gray-500 mt-1">
+              {archivo.name} ({(archivo.size / 1024).toFixed(0)} KB) — se comprimirá automáticamente
+            </p>
+          )}
         </div>
+
+        {error && (
+          <div className="md:col-span-2 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            {error}
+          </div>
+        )}
+
         <div className="md:col-span-2">
           <button
             type="submit"
