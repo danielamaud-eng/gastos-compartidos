@@ -16,5 +16,6 @@ model Gasto {
   nota        String   @default("")
   comprobante String   @default("")
   tipo        String
+  pagadoPor   String   @default("")
   createdAt   DateTime @default(now())
 }

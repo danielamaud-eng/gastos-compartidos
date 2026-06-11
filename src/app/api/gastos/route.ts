@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       nota: body.nota || '',
       comprobante: body.comprobante || '',
       tipo: body.tipo,
+      pagadoPor: body.pagadoPor || '',
     },
   })
   return NextResponse.json(gasto, { status: 201 })

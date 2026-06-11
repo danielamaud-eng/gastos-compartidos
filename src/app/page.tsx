@@ -14,6 +14,7 @@ export type Gasto = {
   nota: string
   comprobante: string
   tipo: string
+  pagadoPor: string
 }
 
 function ProfileCircle() {
@@ -27,13 +28,52 @@ function ProfileCircle() {
   )
 }
 
+// ── Pantalla de configuración inicial ────────────────────────────────────────
+function SetupIdentidad({ onConfirm }: { onConfirm: (nombre: string) => void }) {
+  const [nombre, setNombre] = useState('')
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundImage: "url('/dachshund-bg.svg')", backgroundSize: '320px 220px' }}>
+      <div className="bg-white rounded-2xl p-8 shadow-xl max-w-sm w-full text-center">
+        <div className="text-5xl mb-4">🐾</div>
+        <h1 className="text-xl font-bold text-gray-900 mb-1">Gastos Compartidos</h1>
+        <p className="text-sm text-gray-500 mb-6">¿Cuál es tu nombre? Así sabremos quién registra cada gasto.</p>
+        <input
+          type="text"
+          value={nombre}
+          onChange={e => setNombre(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && nombre.trim() && onConfirm(nombre.trim())}
+          placeholder="Tu nombre"
+          className="w-full border rounded-xl px-4 py-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-rose-400 text-center text-lg"
+          autoFocus
+        />
+        <button
+          onClick={() => nombre.trim() && onConfirm(nombre.trim())}
+          disabled={!nombre.trim()}
+          className="w-full bg-rose-500 hover:bg-rose-600 disabled:bg-rose-200 text-white py-3 rounded-xl font-semibold transition-colors"
+        >
+          Entrar
+        </button>
+        <p className="text-xs text-gray-400 mt-3">Tu pareja también deberá configurar su nombre la primera vez.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
-  const [gastos, setGastos] = useState<Gasto[]>([])
-  const [filtroTipo, setFiltroTipo] = useState<'todos' | 'solo_mia' | 'a_medias'>('todos')
+  const [gastos, setGastos]           = useState<Gasto[]>([])
+  const [filtroTipo, setFiltroTipo]   = useState<'todos' | 'solo_mia' | 'a_medias'>('todos')
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
-  const [mostrarGrafico, setMostrarGrafico] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [mostrarGrafico, setMostrarGrafico]       = useState(false)
+  const [loading, setLoading]         = useState(true)
+  const [identidad, setIdentidad]     = useState<string | null>(null)  // null = aún cargando
+
+  // Leer identidad desde localStorage
+  useEffect(() => {
+    const id = localStorage.getItem('identidad') || ''
+    setIdentidad(id)
+  }, [])
 
   const cargarGastos = useCallback(async () => {
     const res = await fetch('/api/gastos')
@@ -42,7 +82,14 @@ export default function Home() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { cargarGastos() }, [cargarGastos])
+  useEffect(() => {
+    if (identidad !== null && identidad !== '') cargarGastos()
+  }, [identidad, cargarGastos])
+
+  const handleConfirmarIdentidad = (nombre: string) => {
+    localStorage.setItem('identidad', nombre)
+    setIdentidad(nombre)
+  }
 
   const handleGastoCreado = () => {
     cargarGastos()
@@ -53,6 +100,12 @@ export default function Home() {
     await fetch(`/api/gastos/${id}`, { method: 'DELETE' })
     cargarGastos()
   }
+
+  // Aún cargando localStorage
+  if (identidad === null) return null
+
+  // Primera vez — configurar nombre
+  if (identidad === '') return <SetupIdentidad onConfirm={handleConfirmarIdentidad} />
 
   const gastosFiltrados = gastos.filter(g => {
     if (filtroTipo !== 'todos' && g.tipo !== filtroTipo) return false
@@ -65,11 +118,9 @@ export default function Home() {
   return (
     <main className="min-h-screen" style={{ backgroundImage: "url('/dachshund-bg.svg')", backgroundSize: '320px 220px', backgroundRepeat: 'repeat' }}>
 
-      {/* ── Header personal ────────────────────────── */}
+      {/* ── Header ────────────────────────── */}
       <header className="relative overflow-hidden border-b border-rose-100">
-        {/* Fondo degradado */}
         <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50" />
-        {/* Textura pata de perro muy sutil */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -79,29 +130,37 @@ export default function Home() {
         />
         <div className="relative max-w-5xl mx-auto px-4 py-5">
           <div className="flex items-center gap-4">
-            {/* Foto circular — guardar como public/images/perfil.jpg */}
             <ProfileCircle />
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">
                 Gastos Compartidos
                 <span className="ml-2 text-rose-400">🐾</span>
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">Nuestro registro del hogar</p>
+              <p className="text-sm text-gray-400 mt-0.5">Hola, <strong>{identidad}</strong></p>
             </div>
-            <a
-              href="/api/export"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
-            >
-              Exportar Excel
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href="/api/export"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+              >
+                Exportar Excel
+              </a>
+              <button
+                onClick={() => { localStorage.removeItem('identidad'); setIdentidad('') }}
+                className="text-gray-400 hover:text-gray-600 text-xs px-2 py-2"
+                title="Cambiar nombre"
+              >
+                ✎
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* ── Tarjetas de balance ─────────────────── */}
-        <Balance gastos={gastos} />
+        {/* ── Balance ─────────────────── */}
+        <Balance gastos={gastos} identidad={identidad} />
 
         {/* ── Acciones ────────────────────────────── */}
         <div className="flex gap-3 mb-6">
@@ -121,7 +180,7 @@ export default function Home() {
 
         {mostrarFormulario && (
           <div className="mb-6">
-            <FormGasto onCreado={handleGastoCreado} />
+            <FormGasto onCreado={handleGastoCreado} identidad={identidad} />
           </div>
         )}
 
@@ -132,7 +191,7 @@ export default function Home() {
         )}
 
         {/* ── Filtros ──────────────────────────────── */}
-        <div className="bg-white rounded-xl px-4 py-3 mb-4 shadow-sm flex flex-wrap gap-4 items-center border border-rose-50">
+        <div className="bg-white/90 rounded-xl px-4 py-3 mb-4 shadow-sm flex flex-wrap gap-4 items-center border border-rose-50">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-600">Tipo:</label>
             <select
@@ -141,7 +200,7 @@ export default function Home() {
               className="border rounded-lg px-3 py-1.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <option value="todos">Todos</option>
-              <option value="solo_mia">Solo mía</option>
+              <option value="solo_mia">Personal</option>
               <option value="a_medias">A medias</option>
             </select>
           </div>
@@ -165,13 +224,10 @@ export default function Home() {
         {loading ? (
           <div className="text-center py-16 text-gray-300">Cargando...</div>
         ) : (
-          <ListaGastos gastos={gastosFiltrados} onEliminar={handleEliminar} />
+          <ListaGastos gastos={gastosFiltrados} onEliminar={handleEliminar} identidad={identidad} />
         )}
 
-        {/* Footer */}
-        <p className="text-center pt-10 pb-4 text-gray-300 text-sm select-none">
-          Hecho con amor 🐾
-        </p>
+        <p className="text-center pt-10 pb-4 text-gray-300 text-sm select-none">Hecho con amor 🐾</p>
       </div>
     </main>
   )
