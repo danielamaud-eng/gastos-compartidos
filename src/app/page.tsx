@@ -5,6 +5,7 @@ import FormGasto from '@/components/FormGasto'
 import Balance from '@/components/Balance'
 import ListaGastos from '@/components/ListaGastos'
 import GraficoCategoria from '@/components/GraficoCategoria'
+import { PERSONAS } from '@/lib/personas'
 
 export type Gasto = {
   id: number
@@ -30,31 +31,24 @@ function ProfileCircle() {
 
 // ── Pantalla de configuración inicial ────────────────────────────────────────
 function SetupIdentidad({ onConfirm }: { onConfirm: (nombre: string) => void }) {
-  const [nombre, setNombre] = useState('')
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
       style={{ backgroundImage: "url('/dachshund-bg.svg')", backgroundSize: '320px 220px' }}>
       <div className="bg-white rounded-2xl p-8 shadow-xl max-w-sm w-full text-center">
         <div className="text-5xl mb-4">🐾</div>
         <h1 className="text-xl font-bold text-gray-900 mb-1">Gastos Compartidos</h1>
-        <p className="text-sm text-gray-500 mb-6">¿Cuál es tu nombre? Así sabremos quién registra cada gasto.</p>
-        <input
-          type="text"
-          value={nombre}
-          onChange={e => setNombre(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && nombre.trim() && onConfirm(nombre.trim())}
-          placeholder="Tu nombre"
-          className="w-full border rounded-xl px-4 py-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-rose-400 text-center text-lg"
-          autoFocus
-        />
-        <button
-          onClick={() => nombre.trim() && onConfirm(nombre.trim())}
-          disabled={!nombre.trim()}
-          className="w-full bg-rose-500 hover:bg-rose-600 disabled:bg-rose-200 text-white py-3 rounded-xl font-semibold transition-colors"
-        >
-          Entrar
-        </button>
-        <p className="text-xs text-gray-400 mt-3">Tu pareja también deberá configurar su nombre la primera vez.</p>
+        <p className="text-sm text-gray-500 mb-6">¿Quién eres?</p>
+        <div className="flex flex-col gap-3">
+          {PERSONAS.map(nombre => (
+            <button
+              key={nombre}
+              onClick={() => onConfirm(nombre)}
+              className="w-full py-4 rounded-xl font-bold text-lg border-2 border-rose-200 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-colors text-gray-800"
+            >
+              {nombre}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

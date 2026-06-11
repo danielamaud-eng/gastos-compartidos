@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { PERSONAS } from '@/lib/personas'
 
 const CATEGORIAS = [
   'Alimentación', 'Arriendo', 'Servicios', 'Transporte',
@@ -51,6 +52,8 @@ export default function FormGasto({
   const [archivo, setArchivo] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+
+  const pareja = PERSONAS.find(p => p !== identidad) ?? 'Pareja'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -158,14 +161,14 @@ export default function FormGasto({
             </button>
             <button
               type="button"
-              onClick={() => setForm({ ...form, pagadoPor: `~${identidad}` })}
+              onClick={() => setForm({ ...form, pagadoPor: pareja })}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ${
                 form.pagadoPor !== identidad
                   ? 'bg-violet-500 border-violet-500 text-white'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-violet-300'
               }`}
             >
-              Mi pareja
+              {pareja}
             </button>
           </div>
         </div>
