@@ -4,14 +4,16 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
 export default function Balance({ gastos, identidad }: { gastos: Gasto[], identidad: string }) {
-  const aMediasPaguéYo   = gastos.filter(g => g.tipo === 'a_medias' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
+  const aMediasPaguéYo    = gastos.filter(g => g.tipo === 'a_medias' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
   const aMediasPagóPareja = gastos.filter(g => g.tipo === 'a_medias' && g.pagadoPor !== identidad && g.pagadoPor !== '').reduce((s, g) => s + g.monto, 0)
-  const totalAMedias     = aMediasPaguéYo + aMediasPagóPareja
-  const misPersonales    = gastos.filter(g => g.tipo === 'solo_mia' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
-  const totalGeneral     = gastos.reduce((s, g) => s + g.monto, 0)
+  const totalAMedias      = aMediasPaguéYo + aMediasPagóPareja
+  const cargoTotalPaguéYo    = gastos.filter(g => g.tipo === 'cargo_total' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
+  const cargoTotalPagóPareja = gastos.filter(g => g.tipo === 'cargo_total' && g.pagadoPor !== identidad && g.pagadoPor !== '').reduce((s, g) => s + g.monto, 0)
+  const misPersonales     = gastos.filter(g => g.tipo === 'solo_mia' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
+  const totalGeneral      = gastos.reduce((s, g) => s + g.monto, 0)
 
   // Positivo → pareja me debe | Negativo → le debo a mi pareja
-  const balance = aMediasPaguéYo / 2 - aMediasPagóPareja / 2
+  const balance = aMediasPaguéYo / 2 - aMediasPagóPareja / 2 + cargoTotalPaguéYo - cargoTotalPagóPareja
   const balancePositivo = balance >= 0
 
   return (

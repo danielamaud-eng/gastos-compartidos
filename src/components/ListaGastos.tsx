@@ -62,8 +62,12 @@ export default function ListaGastos({
                   {fmt(gasto.monto)}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${gasto.tipo === 'a_medias' ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-600'}`}>
-                    {gasto.tipo === 'a_medias' ? 'A medias' : 'Personal'}
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    gasto.tipo === 'a_medias'    ? 'bg-orange-100 text-orange-800' :
+                    gasto.tipo === 'cargo_total' ? 'bg-emerald-100 text-emerald-800' :
+                    'bg-slate-100 text-slate-600'
+                  }`}>
+                    {gasto.tipo === 'a_medias' ? 'A medias' : gasto.tipo === 'cargo_total' ? 'Cargo 100%' : 'Personal'}
                   </span>
                 </td>
                 <td className="px-4 py-3">

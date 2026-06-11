@@ -140,6 +140,7 @@ export default function FormGasto({
             className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-400"
           >
             <option value="a_medias">A medias (50/50)</option>
+            <option value="cargo_total">Cargo completo (100%)</option>
             <option value="solo_mia">Personal (solo mío)</option>
           </select>
         </div>

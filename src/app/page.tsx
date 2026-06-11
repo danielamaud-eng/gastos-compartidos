@@ -56,7 +56,7 @@ function SetupIdentidad({ onConfirm }: { onConfirm: (nombre: string) => void }) 
 
 export default function Home() {
   const [gastos, setGastos]           = useState<Gasto[]>([])
-  const [filtroTipo, setFiltroTipo]   = useState<'todos' | 'solo_mia' | 'a_medias'>('todos')
+  const [filtroTipo, setFiltroTipo]   = useState<'todos' | 'solo_mia' | 'a_medias' | 'cargo_total'>('todos')
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarGrafico, setMostrarGrafico]       = useState(false)
@@ -196,6 +196,7 @@ export default function Home() {
               <option value="todos">Todos</option>
               <option value="solo_mia">Personal</option>
               <option value="a_medias">A medias</option>
+              <option value="cargo_total">Cargo 100%</option>
             </select>
           </div>
           <div className="flex items-center gap-2">
