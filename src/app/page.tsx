@@ -5,6 +5,7 @@ import FormGasto from '@/components/FormGasto'
 import Balance from '@/components/Balance'
 import ListaGastos from '@/components/ListaGastos'
 import GraficoCategoria from '@/components/GraficoCategoria'
+import VistaSaldos from '@/components/VistaSaldos'
 import { PERSONAS } from '@/lib/personas'
 
 export type Gasto = {
@@ -60,6 +61,7 @@ export default function Home() {
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarGrafico, setMostrarGrafico]       = useState(false)
+  const [mostrarSaldos, setMostrarSaldos]         = useState(false)
   const [loading, setLoading]         = useState(true)
   const [identidad, setIdentidad]     = useState<string | null>(null)  // null = aún cargando
 
@@ -170,6 +172,12 @@ export default function Home() {
           >
             {mostrarGrafico ? 'Ocultar gráfico' : 'Ver gráfico'}
           </button>
+          <button
+            onClick={() => setMostrarSaldos(v => !v)}
+            className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+          >
+            {mostrarSaldos ? 'Ocultar saldos' : 'Ver saldos'}
+          </button>
         </div>
 
         {mostrarFormulario && (
@@ -183,6 +191,8 @@ export default function Home() {
             <GraficoCategoria gastos={gastos} />
           </div>
         )}
+
+        {mostrarSaldos && <VistaSaldos gastos={gastos} />}
 
         {/* ── Filtros ──────────────────────────────── */}
         <div className="bg-white/90 rounded-xl px-4 py-3 mb-4 shadow-sm flex flex-wrap gap-4 items-center border border-rose-50">

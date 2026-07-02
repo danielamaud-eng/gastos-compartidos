@@ -1,20 +1,18 @@
 import { Gasto } from '@/app/page'
+import { PERSONAS } from '@/lib/personas'
+import { calcularSaldoPar } from '@/lib/calcularSaldos'
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
 export default function Balance({ gastos, identidad }: { gastos: Gasto[], identidad: string }) {
-  const aMediasPaguéYo    = gastos.filter(g => g.tipo === 'a_medias' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
-  const aMediasPagóPareja = gastos.filter(g => g.tipo === 'a_medias' && g.pagadoPor !== identidad && g.pagadoPor !== '').reduce((s, g) => s + g.monto, 0)
-  const totalAMedias      = aMediasPaguéYo + aMediasPagóPareja
-  const cargoTotalPaguéYo    = gastos.filter(g => g.tipo === 'cargo_total' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
-  const cargoTotalPagóPareja = gastos.filter(g => g.tipo === 'cargo_total' && g.pagadoPor !== identidad && g.pagadoPor !== '').reduce((s, g) => s + g.monto, 0)
-  const misPersonales     = gastos.filter(g => g.tipo === 'solo_mia' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
-  const totalGeneral      = gastos.reduce((s, g) => s + g.monto, 0)
+  const pareja         = PERSONAS.find(p => p !== identidad) ?? ''
+  const { saldo }      = calcularSaldoPar(gastos, identidad, pareja)
+  const balancePositivo = saldo >= 0
 
-  // Positivo → pareja me debe | Negativo → le debo a mi pareja
-  const balance = aMediasPaguéYo / 2 - aMediasPagóPareja / 2 + cargoTotalPaguéYo - cargoTotalPagóPareja
-  const balancePositivo = balance >= 0
+  const totalAMedias  = gastos.filter(g => g.tipo === 'a_medias').reduce((s, g) => s + g.monto, 0)
+  const misPersonales = gastos.filter(g => g.tipo === 'solo_mia' && g.pagadoPor === identidad).reduce((s, g) => s + g.monto, 0)
+  const totalGeneral  = gastos.reduce((s, g) => s + g.monto, 0)
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -38,7 +36,7 @@ export default function Balance({ gastos, identidad }: { gastos: Gasto[], identi
           {balancePositivo ? 'Te deben' : 'Debes'}
         </p>
         <p className={`text-xl font-bold mt-1 ${balancePositivo ? 'text-green-600' : 'text-red-500'}`}>
-          {fmt(Math.abs(balance))}
+          {fmt(Math.abs(saldo))}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">
           {balancePositivo ? 'tu pareja te debe' : 'le debes a tu pareja'}
