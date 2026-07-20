@@ -1,13 +1,21 @@
-import { Gasto } from '@/app/page'
+import { Gasto, Pago } from '@/app/page'
 import { PERSONAS } from '@/lib/personas'
 import { calcularSaldoPar } from '@/lib/calcularSaldos'
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
-export default function Balance({ gastos, identidad }: { gastos: Gasto[], identidad: string }) {
-  const pareja         = PERSONAS.find(p => p !== identidad) ?? ''
-  const { saldo }      = calcularSaldoPar(gastos, identidad, pareja)
+export default function Balance({
+  gastos,
+  pagos,
+  identidad,
+}: {
+  gastos: Gasto[]
+  pagos: Pago[]
+  identidad: string
+}) {
+  const pareja      = PERSONAS.find(p => p !== identidad) ?? ''
+  const { saldo }   = calcularSaldoPar(gastos, identidad, pareja, pagos)
   const balancePositivo = saldo >= 0
 
   const totalAMedias  = gastos.filter(g => g.tipo === 'a_medias').reduce((s, g) => s + g.monto, 0)

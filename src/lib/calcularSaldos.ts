@@ -11,41 +11,45 @@ export type GastoCalculo = {
 }
 
 export type DetalleGasto = GastoCalculo & {
-  // Desde la perspectiva de personaA:
   // positivo → personaB le debe a personaA por este gasto
   // negativo → personaA le debe a personaB por este gasto
   aporte: number
 }
 
+export type PagoCalculo = {
+  id: number
+  monto: number
+  fecha: string
+  de: string
+  para: string
+  nota: string
+}
+
 export type SaldoPar = {
   personaA: string
   personaB: string
-  // Saldo neto desde perspectiva de personaA.
+  // Saldo neto desde perspectiva de personaA (descontados los pagos).
   // positivo → personaB le debe a personaA
   // negativo → personaA le debe a personaB
   saldo: number
-  acreedor: string // quien recibe
-  deudor: string   // quien paga
-  monto: number    // siempre positivo
+  acreedor: string
+  deudor: string
+  monto: number // siempre positivo
   detalle: DetalleGasto[]
+  pagos: PagoCalculo[]
 }
 
-/**
- * Calcula el saldo neto entre dos personas dado el listado de gastos.
- * El netting es automático: si cada uno le debe algo al otro, se resta
- * y queda una única deuda neta.
- */
 export function calcularSaldoPar(
   gastos: GastoCalculo[],
   personaA: string,
   personaB: string,
+  pagos: PagoCalculo[] = [],
 ): SaldoPar {
   let saldo = 0
   const detalle: DetalleGasto[] = []
 
   for (const g of gastos) {
     const { pagadoPor, tipo, monto } = g
-
     if (tipo === 'solo_mia') continue
     if (pagadoPor !== personaA && pagadoPor !== personaB) continue
 
@@ -62,22 +66,31 @@ export function calcularSaldoPar(
     }
   }
 
+  // de === personaA → personaA pagó su deuda → saldo sube (hacia 0 desde negativo)
+  // de === personaB → personaB pagó su deuda → saldo baja (hacia 0 desde positivo)
+  const pagosPar = pagos.filter(
+    p => (p.de === personaA && p.para === personaB) ||
+         (p.de === personaB && p.para === personaA),
+  )
+  for (const p of pagosPar) {
+    saldo += p.de === personaA ? p.monto : -p.monto
+  }
+
   const acreedor = saldo >= 0 ? personaA : personaB
   const deudor   = saldo >= 0 ? personaB : personaA
 
-  return { personaA, personaB, saldo, acreedor, deudor, monto: Math.abs(saldo), detalle }
+  return { personaA, personaB, saldo, acreedor, deudor, monto: Math.abs(saldo), detalle, pagos: pagosPar }
 }
 
-/**
- * Calcula saldos para todos los pares de personas.
- * Escalable a más de 2 usuarios.
- */
-export function calcularTodosSaldos(gastos: GastoCalculo[]): SaldoPar[] {
+export function calcularTodosSaldos(
+  gastos: GastoCalculo[],
+  pagos: PagoCalculo[] = [],
+): SaldoPar[] {
   const personas = [...PERSONAS]
   const resultado: SaldoPar[] = []
   for (let i = 0; i < personas.length; i++) {
     for (let j = i + 1; j < personas.length; j++) {
-      resultado.push(calcularSaldoPar(gastos, personas[i], personas[j]))
+      resultado.push(calcularSaldoPar(gastos, personas[i], personas[j], pagos))
     }
   }
   return resultado

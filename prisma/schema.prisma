@@ -19,3 +19,13 @@ model Gasto {
   pagadoPor   String   @default("")
   createdAt   DateTime @default(now())
 }
+
+model Pago {
+  id        Int      @id @default(autoincrement())
+  monto     Float
+  fecha     String
+  de        String
+  para      String
+  nota      String   @default("")
+  createdAt DateTime @default(now())
+}

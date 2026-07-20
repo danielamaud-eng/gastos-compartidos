@@ -19,6 +19,15 @@ export type Gasto = {
   pagadoPor: string
 }
 
+export type Pago = {
+  id: number
+  monto: number
+  fecha: string
+  de: string
+  para: string
+  nota: string
+}
+
 function ProfileCircle() {
   return (
     <div
@@ -57,30 +66,33 @@ function SetupIdentidad({ onConfirm }: { onConfirm: (nombre: string) => void }) 
 
 export default function Home() {
   const [gastos, setGastos]           = useState<Gasto[]>([])
+  const [pagos, setPagos]             = useState<Pago[]>([])
   const [filtroTipo, setFiltroTipo]   = useState<'todos' | 'solo_mia' | 'a_medias' | 'cargo_total'>('todos')
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarGrafico, setMostrarGrafico]       = useState(false)
   const [mostrarSaldos, setMostrarSaldos]         = useState(false)
   const [loading, setLoading]         = useState(true)
-  const [identidad, setIdentidad]     = useState<string | null>(null)  // null = aún cargando
+  const [identidad, setIdentidad]     = useState<string | null>(null)
 
-  // Leer identidad desde localStorage
   useEffect(() => {
     const id = localStorage.getItem('identidad') || ''
     setIdentidad(id)
   }, [])
 
-  const cargarGastos = useCallback(async () => {
-    const res = await fetch('/api/gastos')
-    const data = await res.json()
-    setGastos(data)
+  const cargarDatos = useCallback(async () => {
+    const [gastosRes, pagosRes] = await Promise.all([
+      fetch('/api/gastos'),
+      fetch('/api/pagos'),
+    ])
+    setGastos(await gastosRes.json())
+    setPagos(await pagosRes.json())
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    if (identidad !== null && identidad !== '') cargarGastos()
-  }, [identidad, cargarGastos])
+    if (identidad !== null && identidad !== '') cargarDatos()
+  }, [identidad, cargarDatos])
 
   const handleConfirmarIdentidad = (nombre: string) => {
     localStorage.setItem('identidad', nombre)
@@ -88,19 +100,16 @@ export default function Home() {
   }
 
   const handleGastoCreado = () => {
-    cargarGastos()
+    cargarDatos()
     setMostrarFormulario(false)
   }
 
   const handleEliminar = async (id: number) => {
     await fetch(`/api/gastos/${id}`, { method: 'DELETE' })
-    cargarGastos()
+    cargarDatos()
   }
 
-  // Aún cargando localStorage
   if (identidad === null) return null
-
-  // Primera vez — configurar nombre
   if (identidad === '') return <SetupIdentidad onConfirm={handleConfirmarIdentidad} />
 
   const gastosFiltrados = gastos.filter(g => {
@@ -156,10 +165,10 @@ export default function Home() {
       <div className="max-w-5xl mx-auto px-4 py-8">
 
         {/* ── Balance ─────────────────── */}
-        <Balance gastos={gastos} identidad={identidad} />
+        <Balance gastos={gastos} pagos={pagos} identidad={identidad} />
 
         {/* ── Acciones ────────────────────────────── */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={() => setMostrarFormulario(v => !v)}
             className="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
@@ -192,7 +201,13 @@ export default function Home() {
           </div>
         )}
 
-        {mostrarSaldos && <VistaSaldos gastos={gastos} />}
+        {mostrarSaldos && (
+          <VistaSaldos
+            gastos={gastos}
+            pagos={pagos}
+            onPagoCreado={cargarDatos}
+          />
+        )}
 
         {/* ── Filtros ──────────────────────────────── */}
         <div className="bg-white/90 rounded-xl px-4 py-3 mb-4 shadow-sm flex flex-wrap gap-4 items-center border border-rose-50">
